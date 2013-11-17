@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  @author Christophe Lauret (Weborganic)
+  @version 15 November 2013
+-->
+<project name="test" default="tojson" >
+
+<target name="tojson">
+  <xslt in="source.xml" style="idtransform.xsl" out="data.json"/>
+</target>
+
+</project>

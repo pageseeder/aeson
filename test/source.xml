@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!--
+  This is file for testing.
+-->
+<test id="a" name="data" xmlns:json="http://weborganic.org/JSON">
+  <json:array json:name="collections">
+    <collection id="C1" name="Collection #1"/>
+    <collection id="C2" name="Collection #2"/>
+    <collection id="C3" name="Collection #3"/>
+    <collection id="C4" name="Collection #4"/>
+  </json:array>
+</test>
