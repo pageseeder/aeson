@@ -3,7 +3,7 @@
   Ivy configuration for the Berlioz BAse application.
 -->
 <ivy-module version="2.0">
-  <info organisation="weborganic" module="wo-jsonxslt">
+  <info organisation="weborganic" module="wo-aeson">
     <license name="Artistic Licence" url="http://www.opensource.org/licenses/artistic-license-2.0.php"/>
   </info>
 
@@ -15,7 +15,11 @@
   <dependencies>
 
     <!-- core -->
-    <dependency org="saxon"      name="saxonhe"              rev="9+"                 conf="core"/>
+    <dependency org="javax"      name="json-api"             rev="1.0"                conf="core"/>
+
+    <!-- runtime -->
+    <dependency org="javax"      name="json"                 rev="1+"                 conf="runtime"/>
+    <dependency org="saxon"      name="saxonhe"              rev="9+"                 conf="runtime"/>
 
   </dependencies>
 </ivy-module>
