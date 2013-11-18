@@ -2,11 +2,18 @@
 <!--
   This is file for testing.
 -->
-<test id="a" name="data" xmlns:json="http://weborganic.org/JSON">
+<json:object id="a" name="data" xmlns:json="http://weborganic.org/JSON" >
   <json:array json:name="collections">
     <collection id="C1" name="Collection #1"/>
     <collection id="C2" name="Collection #2"/>
     <collection id="C3" name="Collection #3"/>
     <collection id="C4" name="Collection #4"/>
+    <json:array/>
   </json:array>
-</test>
+  <ciber a="124s" b="true" json:number="a" json:boolean="b" json:name="ringo!"/>
+  <json:object json:name="ciber"/>
+  <json:object/>
+  <json:object/>
+  <A>ADSS</A>
+  <?ASDFSFD?>
+</json:object>
