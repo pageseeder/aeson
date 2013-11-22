@@ -5,10 +5,6 @@ exclude-result-prefixes="wo">
 
 <xsl:output method="xml" media-type="application/json"/>
 
-<!-- <xsl:output method="wo:org.weborganic.aeson.JSONSerializer" media-type="application/json"/> -->
-
-<!-- <xsl:output method="wo:net.sf.saxon.serialize.HTMLEmitter" media-type="text/html"/> -->
-
 <xsl:template match="/">
   <xsl:copy-of select="."/>
 </xsl:template>

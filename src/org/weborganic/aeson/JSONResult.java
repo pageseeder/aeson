@@ -1,7 +1,14 @@
 package org.weborganic.aeson;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Transformer;
@@ -102,8 +109,19 @@ public class JSONResult extends SAXResult implements Result {
       if (writer != null) {
         json = new JSONResult(writer);
       } else {
-        // Otherwise send to System.out 
-        json = new JSONResult();
+        String systemId = result.getSystemId();
+        if (systemId != null) {
+          try {
+            File f = new File(URI.create(systemId));
+            FileOutputStream o = new FileOutputStream(f);
+            json = new JSONResult(o);
+          } catch (IOException ex) {
+            // TODO: Handle this proper
+            ex.printStackTrace();
+          }
+        } else {
+          json = new JSONResult();
+        }
       }
     }
     json.setSystemId(result.getSystemId());

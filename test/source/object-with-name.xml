@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!--
+  This is file for testing.
+-->
+<json:object xmlns:json="http://weborganic.org/JSON">
+  <json:object json:name="artefact"/>
+  <json:array json:name="collection"/>
+</json:object>

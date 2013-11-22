@@ -13,6 +13,7 @@
   <property name="name.short"     value="wo-aeson"/>
   <property name="name.display"   value="Aeson"/>
   <property name="package.names"  value="org.weborganic.aeson.*"/>
+  <property name="package.main"   value="org.weborganic.aeson.Main"/>
 
   <!-- set global properties for this build -->
   <property name="dir.src"     value="src"/>
@@ -135,7 +136,7 @@
         <attribute name="Implementation-Title"   value="${name.display}"/>
         <attribute name="Implementation-Version" value="${publish.revision}"/>
         <attribute name="Implementation-Vendor"  value="Weborganic Pty Ltd (Australia)"/>
-        <attribute name="Implementation-URL"     value="http://www.weborganic.org/code/ox/"/>
+        <attribute name="Implementation-URL"     value="http://www.weborganic.org/code/aeson/"/>
       </manifest>
     </jar>
     <!-- Publish to the local Ivy repository  -->

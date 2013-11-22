@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   @author Christophe Lauret (Weborganic)
-  @version 15 November 2013
+  @version 22 November 2013
 -->
 <project name="test" default="tojson" >
 
+<!--
+  Converts all files in /source folder to json and store them in /got folder.
+-->
 <target name="tojson">
-  <xslt in="source.xml" style="idtransform.xsl" out="data.json"/>
+  <java classname="org.weborganic.aeson.Main" classpath="../classes;../lib/json-1.0.3.jar;../lib/json-api-1.0.jar;">
+  	<arg value="-s:source"/>
+  	<arg value="-xsl:json.xsl"/>
+  	<arg value="-o:got"/>
+  </java>
 </target>
 
 </project>
