@@ -1,2 +1,5 @@
 <?xml version="1.0"?>
+<!--
+  Expecting: {"option":"A","color":"blue","visible":"true"]
+-->
 <root option="A" color="blue" size="10" visible="true"/>

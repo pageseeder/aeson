@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  This is file for testing.
+  Expecting: {"color":"blue","size":10,"pi":3.14159265359,"balance":-1029032089,"hidden":false,"visible":true}
 -->
 <json:object xmlns:json="http://weborganic.org/JSON"
   json:string="color"           color="blue"

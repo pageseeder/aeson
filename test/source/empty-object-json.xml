@@ -1,2 +1,5 @@
 <?xml version="1.0"?>
+<!--
+  Expecting: {}
+-->
 <json:object xmlns:json="http://weborganic.org/JSON"/>

@@ -1,11 +1,18 @@
 <?xml version="1.0"?>
 <!--
-  This is file for testing.
+  Expecting:
+  {
+    "color":"blue"
+    "size":10,
+    "visible":true,
+    "block": {"color":"red","size":20,"visible":false},
+    "submarine": {"color":"yellow","size":"large","hidden":"very well"}
+  }
 -->
 <json:object xmlns:json="http://weborganic.org/JSON"
-  json:string="color"           color="blue"
-  json:number="size pi balance" size="10"
-  json:boolean="visible hidden" visible="true">
+  json:string="color"    color="blue"
+  json:number="size"     size="10"
+  json:boolean="visible" visible="true">
   <block color="red" size="20" visible="false"/>
   <submarine color="yellow" json:string="size hidden" size="large" hidden="very well"/>
 </json:object>

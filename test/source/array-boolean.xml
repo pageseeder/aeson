@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!--
+  Expecting: [true, true, false, true]
+-->
+<json:array xmlns:json="http://weborganic.org/JSON" json:boolean="heads">
+  <heads>true</heads>
+  <heads>true</heads>
+  <heads>false</heads>
+  <heads>true</heads>
+</json:array>

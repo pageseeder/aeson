@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!--
+  Expecting: ["NSW","SA","WA"]
+-->
+<json:array xmlns:json="http://weborganic.org/JSON" json:string="state">
+  <state>NSW</state>
+  <state>SA</state>
+  <state>WA</state>
+</json:array>

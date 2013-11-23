@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  This is file for testing.
+  Expecting: {"artefact":{},"collection":[]}
 -->
 <json:object xmlns:json="http://weborganic.org/JSON">
   <json:object json:name="artefact"/>

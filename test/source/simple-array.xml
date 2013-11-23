@@ -1,4 +1,7 @@
 <?xml version="1.0"?>
+<!--
+  Expecting: [{"option":"A"},{"option":"B"},{"option":"C"}]
+-->
 <json:array xmlns:json="http://weborganic.org/JSON">
   <item option="A" />
   <item option="B" />
