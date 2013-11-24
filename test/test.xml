@@ -1,18 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   @author Christophe Lauret (Weborganic)
-  @version 22 November 2013
+  @version 23 November 2013
 -->
-<project name="test" default="tojson" >
+<project name="test" default="tojson-ok" >
+
+<!-- Libraries required for exec -->
+<path id="libs">
+  <fileset dir="../lib" includes="*.jar" />
+</path>
 
 <!--
   Converts all files in /source folder to json and store them in /got folder.
 -->
-<target name="tojson">
-  <java classname="org.weborganic.aeson.Main" classpath="../classes;../lib/json-1.0.3.jar;../lib/json-api-1.0.jar;">
-  	<arg value="-s:source"/>
-  	<arg value="-xsl:json.xsl"/>
-  	<arg value="-o:got"/>
+<target name="tojson-ok">
+  <java classname="org.weborganic.aeson.Main" classpath="../classes" classpathref="libs">
+  	<arg value="-s:source/ok"/>
+  	<arg value="-o:got/ok"/>
+  </java>
+</target>
+
+<!--
+  Converts all files in /source folder to json and store them in /got folder.
+-->
+<target name="tojson-warn">
+  <java classname="org.weborganic.aeson.Main" classpath="../classes" classpathref="libs">
+    <arg value="-s:source/warn"/>
+    <arg value="-o:got/warn"/>
   </java>
 </target>
 

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!--
+  Expecting: {"int":843]
+-->
+<root xmlns:json="http://weborganic.org/JSON" json:number="int     j">
+  <int json:name="My Special Integer Value">843</int>
+</root>

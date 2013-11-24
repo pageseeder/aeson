@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!--
+  Expecting: {array:[]}
+  Warning about 'json:name' being required for array.
+-->
+<json:object xmlns:json="http://weborganic.org/JSON">
+  <json:array/>
+</json:object>

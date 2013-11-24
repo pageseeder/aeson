@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!--
+  Expecting: {}
+  Warning about 'json:bing' being ignored.
+-->
+<json:object xmlns:json="http://weborganic.org/JSON">
+  <json:bing/>
+</json:object>

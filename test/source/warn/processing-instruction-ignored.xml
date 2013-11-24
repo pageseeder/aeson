@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!--
+  This is file for testing.
+-->
+<json:object xmlns:json="http://weborganic.org/JSON">
+  <?pi Should trigger a warning?>
+</json:object>
