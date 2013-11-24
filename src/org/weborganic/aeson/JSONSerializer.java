@@ -1,16 +1,20 @@
 /*
- * Copyright (c) 1999-2012 weborganic systems pty. ltd.
+ * This file is part of the Aeson library.
+ *
+ * For licensing information please see the file license.txt included in the release.
+ * A copy of this licence can also be found at
+ *   http://www.opensource.org/licenses/artistic-license-2.0.php
  */
 package org.weborganic.aeson;
 
 import java.io.OutputStream;
 import java.io.Writer;
-import java.util.ArrayDeque;
-import java.util.Deque;
 
 import javax.json.Json;
 import javax.json.stream.JsonGenerator;
 
+import org.weborganic.aeson.JSONState.JSONContext;
+import org.weborganic.aeson.JSONState.JSONType;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
@@ -26,9 +30,9 @@ import org.xml.sax.helpers.DefaultHandler;
  * <code>JSONResult</code> class.
  *
  * @author Christophe Lauret
- * @version 17 November 2013
+ * @version 23 November 2013
  */
-public class JSONSerializer extends DefaultHandler implements ContentHandler {
+public final class JSONSerializer extends DefaultHandler implements ContentHandler {
 
   /**
    * Namespace used for instructions understood by this serializer.
@@ -36,33 +40,19 @@ public class JSONSerializer extends DefaultHandler implements ContentHandler {
   public static final String NS_URI = "http://weborganic.org/JSON";
 
   /**
-   * The type of serialization to apply to objects
-   *
-   * @author Christophe Lauret
-   */
-  private enum JSONSerialType {OBJECT, STRING, NUMBER, BOOLEAN, ARRAY, AUTO};
-
-  /**
-   * The type of serialization to apply to objects
-   *
-   * @author Christophe Lauret
-   */
-  private enum JSONContext {NIL, OBJECT, ARRAY};
-
-  /**
    * JSON Generator from JSON Processing API.
    */
   private final JsonGenerator json;
 
   /**
-   * Maintains instructions for the JSON serialization at each hierarchical level of the structure.
+   * Maintains the state of the serialization.
    */
-  private final Deque<JSONSerialInstruction> instructions = new ArrayDeque<JSONSerializer.JSONSerialInstruction>();
+  private final JSONState state = new JSONState();
 
   /**
-   * Keeps track of the context.
+   * The buffer for property values.
    */
-  private final Deque<JSONContext> context = new ArrayDeque<JSONContext>();
+  private final StringBuilder buffer = new StringBuilder();
 
   /**
    * The document locator used when reporting warnings.
@@ -104,48 +94,90 @@ public class JSONSerializer extends DefaultHandler implements ContentHandler {
 
   @Override
   public void startDocument() throws SAXException {
+    state.pushState();
   }
 
   @Override
   public void endDocument() throws SAXException {
+    state.popState();
     this.json.close();
   }
 
   @Override
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-    if (NS_URI.equals(uri)) {
-      handleJSONElement(localName, atts);
-    } else {
-      handleElement(localName, atts);
+    try {
+      if (NS_URI.equals(uri)) {
+        handleJSONElement(localName, atts);
+      } else {
+        handleElement(localName, atts);
+      }
+    } catch (Exception ex) {
+      throw new SAXException(ex);
     }
   }
 
   @Override
   public void endElement(String uri, String localName, String qName) throws SAXException {
-    if (NS_URI.equals(uri)) {
-      if ("array".equals(localName) || "object".equals(localName)) {
-        this.context.pop();
+    try {
+      // Preserve what we need of previous context
+      JSONContext wasContext = state.currentContext();
+      String wasName = state.currentName();
+
+      // Then return to parent
+      state.popState();
+
+      if (NS_URI.equals(uri)) {
+
+        // One of the json elements
+        if ("array".equals(localName) || "object".equals(localName)) {
+          this.json.writeEnd();
+        }
+
+      } else if (wasContext == JSONContext.VALUE) {
+
+        // A property
+        String name = state.isContext(JSONContext.OBJECT)? wasName : null;
+        String value = this.buffer.toString();
+        JSONType type = state.getType(localName);
+        writeProperty(name, value, type);
+        this.buffer.setLength(0);
+
+      } else {
+        // A regular element
         this.json.writeEnd();
       }
-    } else {
-      this.context.pop();
-      this.json.writeEnd();
+    } catch (Exception ex) {
+      throw new SAXException(ex);
     }
   }
 
   @Override
   public void warning(SAXParseException ex) {
-    StringBuffer err = new StringBuffer();
-    err.append(ex.getMessage());
-    if (ex.getLineNumber() != -1)
-      err.append(" at line ").append(ex.getLineNumber());
-    if (ex.getColumnNumber() != -1)
-      err.append(" column ").append(ex.getColumnNumber());
-    if (ex.getException() != null) {
-      err.append("; caused by ").append(ex.getException().getClass().getSimpleName());
-      err.append(": ").append(ex.getException().getMessage());
+    // Construct a message for the warning
+    StringBuffer message = new StringBuffer();
+    String systemId = ex.getSystemId();
+    if (systemId != null) {
+      int sol = systemId.lastIndexOf('/');
+      message.append('[').append(sol != -1? systemId.substring(sol+1) : systemId).append("] ");
     }
-    System.err.println(err);
+    message.append(ex.getMessage());
+    if (ex.getLineNumber() != -1)
+      message.append(" at line ").append(ex.getLineNumber());
+    if (ex.getColumnNumber() != -1)
+      message.append(" column ").append(ex.getColumnNumber());
+    if (ex.getException() != null) {
+      message.append("; caused by ").append(ex.getException().getClass().getSimpleName());
+      message.append(": ").append(ex.getException().getMessage());
+    }
+    // And print on the console by default
+    System.err.println(message);
+  }
+
+  @Override
+  public void characters(char[] ch, int start, int len) throws SAXException {
+    if (state.isContext(JSONContext.VALUE)) {
+      this.buffer.append(ch, start, len);
+    }
   }
 
   @Override
@@ -157,8 +189,8 @@ public class JSONSerializer extends DefaultHandler implements ContentHandler {
   // =============================================================================================
 
   /**
-   * Filter out attributes which are namespace declarations (xmlns:*), XML attributes like (xml:*) and
-   * JSON serialization attributes (json:*).
+   * Filter out namespace declarations (xmlns:*), XML attributes like (xml:*) and JSON
+   * serialization attributes (json:*).
    *
    * @param uri the namespace URI
    * @return whether the attribute belonging to that namespace should be considered.
@@ -167,6 +199,22 @@ public class JSONSerializer extends DefaultHandler implements ContentHandler {
     return !(NS_URI.equals(uri)
          || "http://www.w3.org/2000/xmlns/".equals(uri)
          || "http://www.w3.org/XML/1998/namespace".equals(uri));
+  }
+
+  /**
+   * Indicates whether the specified attributes include at least one attribute
+   * that should be serialized as a property.
+   *
+   * @param atts the attributes to loop through
+   * @return <code>true</code> if at least one attribute matched;
+   *         <code>false</code> otherwise.
+   */
+  private static boolean hasProperty(Attributes atts) {
+    final int upto = atts.getLength();
+    for (int i = 0; i < upto; i++) {
+      if (filterNamespace(atts.getURI(i))) return true;
+    }
+    return false;
   }
 
   /**
@@ -179,33 +227,35 @@ public class JSONSerializer extends DefaultHandler implements ContentHandler {
    */
   private void handleJSONElement(String localName, Attributes atts) {
     String name = atts.getValue(NS_URI, "name");
-    if (name == null && this.context.peek() == JSONContext.OBJECT) {
+    if (name == null && state.isContext(JSONContext.OBJECT)) {
       warning(new SAXParseException("Attribute json:name must be used to specify array/object name", this.locator));
       name = localName;
     }
     if ("array".equals(localName)) {
 
       // A JavaScript array explicitly
-      if (this.context.peek() == JSONContext.OBJECT)
+      if (state.isContext(JSONContext.OBJECT))
         this.json.writeStartArray(name);
       else
         this.json.writeStartArray();
 
-      this.context.push(JSONContext.ARRAY);
+      state.pushState(JSONContext.ARRAY, atts, name);
 
     } else if ("object".equals(localName)) {
 
       // A JavaScript object explicitly
-      if (this.context.peek() == JSONContext.OBJECT)
+      if (state.isContext(JSONContext.OBJECT))
         this.json.writeStartObject(name);
       else
         this.json.writeStartObject();
 
-      this.context.push(JSONContext.OBJECT);
+      state.pushState(JSONContext.OBJECT, atts, name);
+
       // Serialize the attributes as value pairs
       handleValuePairs(atts);
 
     } else {
+      state.pushState(JSONContext.OBJECT, atts, name);
       // An element we don't understand
       warning(new SAXParseException("Unknown JSON element:"+localName, this.locator));
     }
@@ -222,47 +272,67 @@ public class JSONSerializer extends DefaultHandler implements ContentHandler {
   private void handleElement(String localName, Attributes atts) {
     String name = atts.getValue(NS_URI, "name");
 
-    // Start object
-    if (this.context.peek() == JSONContext.OBJECT) {
-      if (name == null) name = localName;
-      this.json.writeStartObject(name);
-    } else {
-      if (atts.getValue(NS_URI, "name") != null) {
-        warning(new SAXParseException("Attribute json:name is ignored in array/document context", this.locator));
+    // If the element name matches of the types, it's a property
+    if (state.getType(localName) != JSONType.DEFAULT) {
+      if (hasProperty(atts)) {
+        warning(new SAXParseException("Element "+localName+" is mapped to a property, also has properties!", this.locator));
       }
-      this.json.writeStartObject();
-    }
-    this.context.push(JSONContext.OBJECT);
+      if (name == null) name = localName;
+      state.pushState(JSONContext.VALUE, atts, name);
 
-    // Serialize the attributes as value pairs
-    handleValuePairs(atts);
+    } else {
+      // Start object
+      if (state.isContext(JSONContext.OBJECT)) {
+        if (name == null) name = localName;
+        this.json.writeStartObject(name);
+      } else {
+        if (atts.getValue(NS_URI, "name") != null) {
+          warning(new SAXParseException("Attribute json:name is ignored in array/document context", this.locator));
+        }
+        this.json.writeStartObject();
+      }
+      state.pushState(JSONContext.OBJECT, atts, name);
+
+      // Serialize the attributes as value pairs
+      handleValuePairs(atts);
+    }
   }
 
   /**
    * Serialize the attributes as value pairs within the context object.
    *
    * @param atts The attributes on the current element
-   * @throws SAXException
    */
   private void handleValuePairs(Attributes atts) {
-    JSONSerialInstruction instruction  = new JSONSerialInstruction(atts);
     // Serialize the name value pairs from the attributes
-    for (int i=0; i < atts.getLength(); i++) {
+    final int upto = atts.getLength();
+    for (int i=0; i < upto; i++) {
       if (filterNamespace(atts.getURI(i))) {
         String name = atts.getLocalName(i);
         String value = atts.getValue(i);
-        JSONSerialType type = instruction.getSerialType(name);
-        switch (type) {
-          case NUMBER:
-            asNumber(name, value);
-            break;
-          case BOOLEAN:
-            asBoolean(name, value);
-            break;
-          default:
-            this.json.write(name, value);
-        }
+        JSONType type = state.getType(name);
+        writeProperty(name, value, type);
       }
+    }
+  }
+
+  /**
+   * Write the property
+   *
+   * @param name  The name of the property (may be <code>null</code>)
+   * @param value The value of the property
+   * @param type  The type of property
+   */
+  private void writeProperty(String name, String value, JSONType type) {
+    switch (type) {
+      case NUMBER:
+        asNumber(name, value);
+        break;
+      case BOOLEAN:
+        asBoolean(name, value);
+        break;
+      default:
+        asString(name, value);
     }
   }
 
@@ -278,13 +348,19 @@ public class JSONSerializer extends DefaultHandler implements ContentHandler {
     try {
       if (value.indexOf('.') != -1) {
         double number = Double.parseDouble(value);
-        this.json.write(name, number);
+        if (name != null)
+          this.json.write(name, number);
+        else
+          this.json.write(number);
       } else {
         long number = Long.parseLong(value);
-        this.json.write(name, number);
+        if (name != null)
+          this.json.write(name, number);
+        else
+          this.json.write(number);
       }
     } catch (NumberFormatException ex) {
-      this.json.write(name, value);
+      asString(name, value);
       warning(new SAXParseException("Unable to convert attribute '"+name+"' to a number", this.locator, ex));
     }
   }
@@ -294,84 +370,38 @@ public class JSONSerializer extends DefaultHandler implements ContentHandler {
    *
    * <p>Will fallback on a string and report a warning if unable to convert to a boolean.
    *
-   * @param name  The JSON name to write.
+   * @param name  The JSON name to write (may be <code>null</code>)
    * @param value The JSON value to write.
    */
   private void asBoolean(String name, String value) {
     if ("true".equals(value)) {
-      this.json.write(name, true);
+      if (name != null)
+        this.json.write(name, true);
+      else
+        this.json.write(true);
     } else if ("false".equals(value)) {
-      this.json.write(name, false);
+      if (name != null)
+        this.json.write(name, false);
+      else
+        this.json.write(false);
     } else {
-      this.json.write(name, value);
+      asString(name, value);
       warning(new SAXParseException("Unable to convert attribute '"+name+"' to a boolean", this.locator));
     }
   }
 
-  // Helper inner classes
-  // =============================================================================================
 
-  private static class JSONSerialInstruction {
-
-    private static final String[] NIL = new String[]{};
-
-    /**
-     * Names of elements to be converted to JavaScript numbers.
-     */
-    private final String[] numbers;
-
-    /**
-     * Names of elements to be converted to JavaScript booleans.
-     */
-    private final String[] booleans;
-
-    /**
-     * Names of elements to be converted to JavaScript strings.
-     */
-    private final String[] strings;
-
-    /**
-     *
-     * @param atts the attributes on the current element
-     */
-    public JSONSerialInstruction(Attributes atts) {
-      String toBoolean = atts.getValue(NS_URI, "boolean");
-      this.booleans = toBoolean != null ? toBoolean.split(" ") : NIL;
-      String toNumber = atts.getValue(NS_URI, "number");
-      this.numbers = toNumber != null?  toNumber.split(" ") : NIL;
-      String toString = atts.getValue(NS_URI, "string");
-      this.strings = toString != null? toString.split(" ") : NIL;
-    }
-
-    public boolean isString(String name) {
-      for (String s : this.strings)
-        if (s.equals(name)) return true;
-      return false;
-    }
-
-    public boolean isNumber(String name) {
-      for (String n : this.numbers)
-        if (n.equals(name)) return true;
-      return false;
-    }
-
-    public boolean isBoolean(String name) {
-      for (String b : this.booleans)
-        if (b.equals(name)) return true;
-      return false;
-    }
-
-    /**
-     *
-     * @param name
-     * @return
-     */
-    public JSONSerialType getSerialType(String name) {
-      if (isBoolean(name)) return JSONSerialType.BOOLEAN;
-      if (isNumber(name)) return JSONSerialType.NUMBER;
-      if (isString(name)) return JSONSerialType.STRING;
-      return JSONSerialType.AUTO;
-    }
-
+  /**
+   * Writes the specified string property as a string.
+   *
+   * @param name  The JSON name to write (may be <code>null</code>)
+   * @param value The JSON value to write.
+   */
+  private void asString(String name, String value) {
+    if (name != null)
+      this.json.write(name, value);
+    else
+      this.json.write(value);
   }
+
 }

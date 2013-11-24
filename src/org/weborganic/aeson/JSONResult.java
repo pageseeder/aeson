@@ -1,14 +1,18 @@
+/*
+ * This file is part of the Aeson library.
+ *
+ * For licensing information please see the file license.txt included in the release.
+ * A copy of this licence can also be found at
+ *   http://www.opensource.org/licenses/artistic-license-2.0.php
+ */
 package org.weborganic.aeson;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Transformer;

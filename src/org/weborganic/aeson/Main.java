@@ -1,3 +1,10 @@
+/*
+ * This file is part of the Aeson library.
+ *
+ * For licensing information please see the file license.txt included in the release.
+ * A copy of this licence can also be found at
+ *   http://www.opensource.org/licenses/artistic-license-2.0.php
+ */
 package org.weborganic.aeson;
 
 import java.io.File;
@@ -37,12 +44,13 @@ public class Main {
     File style = getFile(args, "-xsl:");
     File output = getFile(args, "-o:");
 
-    // Usual checks
+    // Source is required
     if (source == null || !source.exists()) {
       System.err.println("Unable to process source: "+source);
       System.exit(0);
     }
 
+    // Output folder required if source is a folder
     if (source.isDirectory()) {
       if (output == null || output.isFile()) {
         System.err.println("When source is a directory, the output must be specified and be a directory");
@@ -57,14 +65,18 @@ public class Main {
       Source xslt = new StreamSource(style);
       transformer = factory.newTransformer(xslt);
     } else {
+      // This should create a identity transformer
+      // TODO: We could simply SAX parse the xml...
       transformer = factory.newTransformer();
+      transformer.setOutputProperty("method", "xml");
+      transformer.setOutputProperty("media-type", "application/json");
     }
 
     // Process
     if (source.isDirectory()) {
 
-      if (!output.exists())
-        output.mkdirs();
+      // Let's ensure the output dir exists
+      if (!output.exists()) output.mkdirs();
 
       // Iterate over files in directory
       for (File f : source.listFiles()) {
@@ -78,7 +90,11 @@ public class Main {
 
       // Process individual file
       StreamSource s = new StreamSource(source);
-      StreamResult r = new StreamResult(System.out);
+      StreamResult r;
+      if (output != null)
+        r = new StreamResult(output);
+      else
+        r = new StreamResult(System.out);
       Result result = JSONResult.newInstanceIfSupported(transformer, r);
       transformer.transform(s, result);
     }
