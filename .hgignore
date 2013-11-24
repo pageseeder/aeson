@@ -5,3 +5,5 @@ syntax: regexp
 ^\.settings$
 syntax: regexp
 ^test/got$
+syntax: regexp
+^doc$
