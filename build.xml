@@ -48,7 +48,7 @@
     <antcall target="-publish">
       <param name="publish.status"   value="integration"/>
       <param name="publish.resolver" value="local"/>
-      <param name="publish.revision" value="0.1.0"/>
+      <param name="publish.revision" value="${ivy.new.revision}"/>
     </antcall>
   </target>
 
