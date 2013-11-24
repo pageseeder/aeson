@@ -78,7 +78,6 @@ final class JSONState {
    * Remove all objects from state.
    */
   public final void popState() {
-    System.err.println(this.toString());
     this.context.pop();
     this.types.pop();
     this.names.pop();
