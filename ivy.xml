@@ -5,6 +5,7 @@
 <ivy-module version="2.0">
   <info organisation="weborganic" module="wo-aeson">
     <license name="Artistic Licence" url="http://www.opensource.org/licenses/artistic-license-2.0.php"/>
+    <description homepage="http://pageseeder.org/aeson.html"/>
   </info>
 
   <configurations defaultconfmapping="core->default;runtime->runtime(default)">
