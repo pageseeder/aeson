@@ -7,3 +7,5 @@ syntax: regexp
 ^test/got$
 syntax: regexp
 ^doc$
+syntax: regexp
+^lib$
