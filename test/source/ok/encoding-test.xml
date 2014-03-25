@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!--
+  Expecting: {"option":"A","color":"blue","visible":"true"]
+-->
+<root option="A &#8112; B" color="blue" size="10" visible="true" json:string="description" xmlns:json="http://weborganic.org/JSON">
+  <description>Part &#8112; 1</description>
+</root>
