@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!--
+  Expecting: [{}]
+  Warning about 'json:name' being ignored.
+-->
+<json:object xmlns:json="http://weborganic.org/JSON">
+  <json:null json:name="nomore">
+    <json:array/>
+  </json:null>
+</json:object>

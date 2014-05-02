@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<!--
+  Expecting: [true, true, false, true]
+-->
+<json:null xmlns:json="http://weborganic.org/JSON" json:name="s"/>

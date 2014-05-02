@@ -6,4 +6,5 @@
   json:string="color"           color="blue"
   json:number="size pi balance" size="10" pi="3.14159265359" balance="-1029032089.00"
   json:boolean="visible hidden" hidden="false" visible="true"
+  json:null="empty"             empty=""
 />

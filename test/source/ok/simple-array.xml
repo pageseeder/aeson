@@ -6,4 +6,5 @@
   <item option="A" />
   <item option="B" />
   <item option="C" />
+  <json:null/>
 </json:array>

@@ -4,5 +4,6 @@
 -->
 <json:object xmlns:json="http://weborganic.org/JSON">
   <json:object json:name="artefact"/>
-  <json:array json:name="collection"/>
+  <json:array  json:name="collection"/>
+  <json:null   json:name="empty"/>
 </json:object>

@@ -107,10 +107,15 @@ public final class JSONSerializer extends DefaultHandler implements ContentHandl
   @Override
   public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
     try {
-      if (NS_URI.equals(uri)) {
-        handleJSONElement(localName, atts);
+      if (!this.state.isContext(JSONContext.NULL)) {
+        if (NS_URI.equals(uri)) {
+          handleJSONElement(localName, atts);
+        } else {
+          handleElement(localName, atts);
+        }
       } else {
-        handleElement(localName, atts);
+        this.state.pushState(JSONContext.NULL, atts, "");
+        warning(new SAXParseException("Ignoring element "+qName+" in null context", this.locator));
       }
     } catch (Exception ex) {
       throw new SAXException(ex);
@@ -127,25 +132,27 @@ public final class JSONSerializer extends DefaultHandler implements ContentHandl
       // Then return to parent
       this.state.popState();
 
-      if (NS_URI.equals(uri)) {
+      if (wasContext != JSONContext.NULL) {
+        if (NS_URI.equals(uri)) {
 
-        // One of the json elements
-        if ("array".equals(localName) || "object".equals(localName)) {
+          // One of the json elements
+          if ("array".equals(localName) || "object".equals(localName)) {
+            this.json.writeEnd();
+          }
+
+        } else if (wasContext == JSONContext.VALUE) {
+
+          // A property
+          String name = this.state.isContext(JSONContext.OBJECT)? wasName : null;
+          String value = this.buffer.toString();
+          JSONType type = this.state.getType(localName);
+          writeProperty(name, value, type);
+          this.buffer.setLength(0);
+
+        } else {
+          // A regular element
           this.json.writeEnd();
         }
-
-      } else if (wasContext == JSONContext.VALUE) {
-
-        // A property
-        String name = this.state.isContext(JSONContext.OBJECT)? wasName : null;
-        String value = this.buffer.toString();
-        JSONType type = this.state.getType(localName);
-        writeProperty(name, value, type);
-        this.buffer.setLength(0);
-
-      } else {
-        // A regular element
-        this.json.writeEnd();
       }
     } catch (Exception ex) {
       throw new SAXException(ex);
@@ -257,11 +264,16 @@ public final class JSONSerializer extends DefaultHandler implements ContentHandl
 
     } else if ("null".equals(localName)) {
 
-      // A JavaScript object explicitly
-      if (this.state.isContext(JSONContext.OBJECT))
-        this.json.write(name, JsonValue.NULL);
+      // A JavaScript null explicitly
+      if (this.state.isContext(JSONContext.ROOT)) {
+        // Illegal in root context!
+        warning(new SAXParseException("Illegal null as root, substituting for empty object", this.locator));
+        this.json.writeStartObject();
+        this.json.writeEnd();
+      } else if (this.state.isContext(JSONContext.OBJECT))
+        this.json.writeNull(name);
       else
-        this.json.write(JsonValue.NULL);
+        this.json.writeNull();
 
       this.state.pushState(JSONContext.NULL, atts, name);
 
