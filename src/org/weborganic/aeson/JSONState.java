@@ -29,7 +29,7 @@ final class JSONState {
   /**
    * How property values should be serialized.
    */
-  public enum JSONType {STRING, NUMBER, BOOLEAN, DEFAULT};
+  public enum JSONType {STRING, NUMBER, BOOLEAN, NULL, DEFAULT};
 
   /**
    * The current context.
@@ -140,7 +140,7 @@ final class JSONState {
     public final static JSONTypeMap EMPTY = new JSONTypeMap();
 
     /**
-     * Names of elements to be converted to JavaScript numbers.
+     * Names of elements to be converted to JavaScript types other than string.
      */
     private final Map<String, JSONType> map;
 
@@ -167,7 +167,7 @@ final class JSONState {
      * @return The type this name is mapped to.
      */
     public JSONType getType(String name) {
-      JSONType type = map.get(name);
+      JSONType type = this.map.get(name);
       return type != null? type : JSONType.DEFAULT;
     }
 
@@ -186,7 +186,8 @@ final class JSONState {
       String toBoolean = atts.getValue(JSONSerializer.NS_URI, "boolean");
       String toNumber = atts.getValue(JSONSerializer.NS_URI, "number");
       String toString = atts.getValue(JSONSerializer.NS_URI, "string");
-      if (toBoolean == null && toNumber == null && toString == null) {
+      String toNull = atts.getValue(JSONSerializer.NS_URI, "null");
+      if (toBoolean == null && toNumber == null && toString == null && toNull == null) {
         // Return the current if no new type mappings defined
         return current;
       } else {
@@ -205,6 +206,11 @@ final class JSONState {
         if (toString != null) {
           for (String name : toString.split(" ")) {
             updated.put(name, JSONType.STRING);
+          }
+        }
+        if (toNull != null) {
+          for (String name : toNull.split(" ")) {
+            updated.put(name, JSONType.NULL);
           }
         }
         return new JSONTypeMap(updated);

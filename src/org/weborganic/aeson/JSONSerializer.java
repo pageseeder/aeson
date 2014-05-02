@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.io.Writer;
 
 import javax.json.Json;
+import javax.json.JsonValue;
 import javax.json.stream.JsonGenerator;
 
 import org.weborganic.aeson.JSONState.JSONContext;
@@ -94,12 +95,12 @@ public final class JSONSerializer extends DefaultHandler implements ContentHandl
 
   @Override
   public void startDocument() throws SAXException {
-    state.pushState();
+    this.state.pushState();
   }
 
   @Override
   public void endDocument() throws SAXException {
-    state.popState();
+    this.state.popState();
     this.json.close();
   }
 
@@ -120,11 +121,11 @@ public final class JSONSerializer extends DefaultHandler implements ContentHandl
   public void endElement(String uri, String localName, String qName) throws SAXException {
     try {
       // Preserve what we need of previous context
-      JSONContext wasContext = state.currentContext();
-      String wasName = state.currentName();
+      JSONContext wasContext = this.state.currentContext();
+      String wasName = this.state.currentName();
 
       // Then return to parent
-      state.popState();
+      this.state.popState();
 
       if (NS_URI.equals(uri)) {
 
@@ -136,9 +137,9 @@ public final class JSONSerializer extends DefaultHandler implements ContentHandl
       } else if (wasContext == JSONContext.VALUE) {
 
         // A property
-        String name = state.isContext(JSONContext.OBJECT)? wasName : null;
+        String name = this.state.isContext(JSONContext.OBJECT)? wasName : null;
         String value = this.buffer.toString();
-        JSONType type = state.getType(localName);
+        JSONType type = this.state.getType(localName);
         writeProperty(name, value, type);
         this.buffer.setLength(0);
 
@@ -154,7 +155,7 @@ public final class JSONSerializer extends DefaultHandler implements ContentHandl
   @Override
   public void warning(SAXParseException ex) {
     // Construct a message for the warning
-    StringBuffer message = new StringBuffer();
+    StringBuilder message = new StringBuilder();
     String systemId = ex.getSystemId();
     if (systemId != null) {
       int sol = systemId.lastIndexOf('/');
@@ -175,7 +176,7 @@ public final class JSONSerializer extends DefaultHandler implements ContentHandl
 
   @Override
   public void characters(char[] ch, int start, int len) throws SAXException {
-    if (state.isContext(JSONContext.VALUE)) {
+    if (this.state.isContext(JSONContext.VALUE)) {
       this.buffer.append(ch, start, len);
     }
   }
@@ -227,35 +228,35 @@ public final class JSONSerializer extends DefaultHandler implements ContentHandl
    */
   private void handleJSONElement(String localName, Attributes atts) {
     String name = atts.getValue(NS_URI, "name");
-    if (name == null && state.isContext(JSONContext.OBJECT)) {
+    if (name == null && this.state.isContext(JSONContext.OBJECT)) {
       warning(new SAXParseException("Attribute json:name must be used to specify array/object name", this.locator));
       name = localName;
     }
     if ("array".equals(localName)) {
 
       // A JavaScript array explicitly
-      if (state.isContext(JSONContext.OBJECT))
+      if (this.state.isContext(JSONContext.OBJECT))
         this.json.writeStartArray(name);
       else
         this.json.writeStartArray();
 
-      state.pushState(JSONContext.ARRAY, atts, name);
+      this.state.pushState(JSONContext.ARRAY, atts, name);
 
     } else if ("object".equals(localName)) {
 
       // A JavaScript object explicitly
-      if (state.isContext(JSONContext.OBJECT))
+      if (this.state.isContext(JSONContext.OBJECT))
         this.json.writeStartObject(name);
       else
         this.json.writeStartObject();
 
-      state.pushState(JSONContext.OBJECT, atts, name);
+      this.state.pushState(JSONContext.OBJECT, atts, name);
 
       // Serialize the attributes as value pairs
       handleValuePairs(atts);
 
     } else {
-      state.pushState(JSONContext.OBJECT, atts, name);
+      this.state.pushState(JSONContext.OBJECT, atts, name);
       // An element we don't understand
       warning(new SAXParseException("Unknown JSON element:"+localName, this.locator));
     }
@@ -273,16 +274,16 @@ public final class JSONSerializer extends DefaultHandler implements ContentHandl
     String name = atts.getValue(NS_URI, "name");
 
     // If the element name matches of the types, it's a property
-    if (state.getType(localName) != JSONType.DEFAULT) {
+    if (this.state.getType(localName) != JSONType.DEFAULT) {
       if (hasProperty(atts)) {
         warning(new SAXParseException("Element "+localName+" is mapped to a property, also has properties!", this.locator));
       }
       if (name == null) name = localName;
-      state.pushState(JSONContext.VALUE, atts, name);
+      this.state.pushState(JSONContext.VALUE, atts, name);
 
     } else {
       // Start object
-      if (state.isContext(JSONContext.OBJECT)) {
+      if (this.state.isContext(JSONContext.OBJECT)) {
         if (name == null) name = localName;
         this.json.writeStartObject(name);
       } else {
@@ -291,7 +292,7 @@ public final class JSONSerializer extends DefaultHandler implements ContentHandl
         }
         this.json.writeStartObject();
       }
-      state.pushState(JSONContext.OBJECT, atts, name);
+      this.state.pushState(JSONContext.OBJECT, atts, name);
 
       // Serialize the attributes as value pairs
       handleValuePairs(atts);
@@ -310,7 +311,7 @@ public final class JSONSerializer extends DefaultHandler implements ContentHandl
       if (filterNamespace(atts.getURI(i))) {
         String name = atts.getLocalName(i);
         String value = atts.getValue(i);
-        JSONType type = state.getType(name);
+        JSONType type = this.state.getType(name);
         writeProperty(name, value, type);
       }
     }
@@ -330,6 +331,9 @@ public final class JSONSerializer extends DefaultHandler implements ContentHandl
         break;
       case BOOLEAN:
         asBoolean(name, value);
+        break;
+      case NULL:
+        asNull(name);
         break;
       default:
         asString(name, value);
@@ -390,6 +394,18 @@ public final class JSONSerializer extends DefaultHandler implements ContentHandl
     }
   }
 
+  /**
+   * Attempts to write the specified name/value pair as a <code>null</code>.
+   *
+   * @param name  The JSON name to write (may be <code>null</code>)
+   * @param value The JSON value to write.
+   */
+  private void asNull(String name) {
+    if (name != null)
+      this.json.write(name, JsonValue.NULL);
+    else
+      this.json.write(JsonValue.NULL);
+  }
 
   /**
    * Writes the specified string property as a string.
