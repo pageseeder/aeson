@@ -255,6 +255,16 @@ public final class JSONSerializer extends DefaultHandler implements ContentHandl
       // Serialize the attributes as value pairs
       handleValuePairs(atts);
 
+    } else if ("null".equals(localName)) {
+
+      // A JavaScript object explicitly
+      if (this.state.isContext(JSONContext.OBJECT))
+        this.json.write(name, JsonValue.NULL);
+      else
+        this.json.write(JsonValue.NULL);
+
+      this.state.pushState(JSONContext.NULL, atts, name);
+
     } else {
       this.state.pushState(JSONContext.OBJECT, atts, name);
       // An element we don't understand

@@ -3,5 +3,6 @@
   Expecting: {}
 -->
 <json:object xmlns:json="http://weborganic.org/JSON"
-  json:null="void" void=""
-/>
+  json:null="void" void="">
+  <json:null json:name="test"/>
+</json:object>

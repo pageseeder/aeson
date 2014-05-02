@@ -34,7 +34,7 @@ final class JSONState {
   /**
    * The current context.
    */
-  public enum JSONContext {ROOT, OBJECT, ARRAY, VALUE};
+  public enum JSONContext {ROOT, OBJECT, ARRAY, NULL, VALUE};
 
   /**
    * Keeps track of the context.
