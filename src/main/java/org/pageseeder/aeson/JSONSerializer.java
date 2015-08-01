@@ -46,7 +46,7 @@ public final class JSONSerializer extends DefaultHandler implements ContentHandl
   /**
    * Namespace used for instructions understood by this serializer.
    */
-  public static final String NS_URI = "http://weborganic.org/JSON";
+  public static final String NS_URI = "http://pageseeder.org/JSON";
 
   /**
    * JSON Generator from JSON Processing API.
