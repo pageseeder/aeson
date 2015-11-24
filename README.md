@@ -1,3 +1,5 @@
+[ ![Download](https://api.bintray.com/packages/pageseeder/maven/aeson/images/download.svg) ](https://bintray.com/pageseeder/maven/aeson/_latestVersion)
+
 # Aeson
 
 Aeson generates JSON out of a simple XML format.
