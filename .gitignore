@@ -1,4 +1,7 @@
+/build/
 /target/
 /.settings/
 /.classpath
 /.project
+/.gradle/
+/bin/
